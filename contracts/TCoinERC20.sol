@@ -3,6 +3,7 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract TCoin is ERC20 {
     mapping(address => uint256) public balances;
+    mapping(address => mapping( address => uint256 )) public allowed;
     event Transfer(address _owner, uint256 _amount);
 
     constructor() ERC20("TCoin", "TC") {
@@ -26,6 +27,14 @@ contract TCoin is ERC20 {
 
         emit Transfer(_receiver, _amount);
         return true;
+    }
+    function approve(address _delegate, uint256 _amount) public override returns(bool) {
+        allowed[msg.sender][_delegate] = _amount;
+
+        return true;
+    }
+    function allowance(address _owner, address _delegate) public override view returns(uint256) {
+        return allowed[_owner][_delegate];
     }
 }
     
