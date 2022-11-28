@@ -1,16 +1,18 @@
-// scripts/deploy.js
-async function main () {
-  // We get the contract to deploy
-  const TCoin = await ethers.getContractFactory('TCoinERC20');
+const hre = require("hardhat");
+
+async function main() {
+
+  const TCoin = await hre.ethers.getContractFactory("TCoinERC20");
   console.log('Deploying TCoin...');
-  const tcoin = await TCoin.deploy();
-  await tcoin.deployed();
-  console.log('TCoin deployed to:', tcoin.address);
+  const token = await TCoinERC20.deploy('10000000000000000000000');
+
+  await token.deployed();
+  console.log("TCoin deployed to:", token.address);
 }
 
 main()
   .then(() => process.exit(0))
-  .catch(error => {
+  .catch((error) => {
     console.error(error);
     process.exit(1);
   });
