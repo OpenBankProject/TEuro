@@ -28,4 +28,29 @@ contract MockERC20 is ERC20 {
     ) {
         _mint(msg.sender, initialBalance);
     }
+     /**
+     * @notice Mints a given amount of tokens to the provided target account.
+     *
+     * @param account The address to recieve the tokens.
+     * @param amount The number of tokens to mint.
+     */
+    function mint (
+        address account,
+        uint256 amount
+    ) external {
+        _mint(account, amount);
+    }
+
+    /**
+     * @notice Burns a given amount of tokens from the provided target account.
+     *
+     * @param account The address to burn the tokens from.
+     * @param amount The number of tokens to burn.
+     */
+    function burn (
+        address account,
+        uint256 amount
+    ) external {
+        _burn(account, amount);
+    }
 }
