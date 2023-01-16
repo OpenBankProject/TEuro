@@ -5,13 +5,19 @@ pragma solidity ^0.8.17;
  * @dev interface of the ERC735 (Claim Holder) standard as defined in the EIP.
  */
 interface IERC735 {
-
+    // ===== EVENTS =====
     /**
-     * @dev Emitted when a claim request was performed.
-     *
-     * Specification: Is not clear
+     * @notice Emitted when a claim request was performed.
      */
-    event ClaimRequested(uint256 indexed claimRequestId, uint256 indexed topic, uint256 scheme, address indexed issuer, bytes signature, bytes data, string uri);
+    event ClaimRequested (
+        uint256 indexed claimRequestId,
+        uint256 indexed topic,
+        uint256 scheme,
+        address indexed issuer,
+        bytes signature,
+        bytes data,
+        string uri
+    );
 
     /**
      * @dev Emitted when a claim was added.
