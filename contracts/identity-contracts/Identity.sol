@@ -1,27 +1,21 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
 import "./IIdentity.sol";
 import { Storage } from "./Storage.sol";
+import { RrpRequesterV0 } from "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
 
 /**
- * @dev Implementation of the `IERC734` "KeyHolder" and the `IERC735` "ClaimHolder" interfaces into a common Identity Contract.
- * This implementation has a separate contract were it declares all storage, allowing for it to be used as an upgradable logic contract.
+ * @title Identity
+ * @author OBP - Open Bank Project
+ *
+ * @notice Implementation of the `IERC734`(KeyHolder) and the 
+ * `IERC735`(ClaimHolder) interfaces into a common identity contract.
  */
-contract Identity is Storage, IIdentity {
-    bool private initialized = false;
+contract Identity is Storage, RrpRequesterV0, IIdentity {
+    
     bool private canInteract = true;
-
-    constructor(address initialManagementKey, bool _isLibrary) {
-        canInteract = !_isLibrary;
-
-        if (canInteract) {
-            __Identity_init(initialManagementKey);
-        } else {
-            initialized = true;
-        }
-    }
-
+    
     /**
      * @notice Prevent any direct calls to the implementation contract (marked by canInteract = false).
      */
@@ -30,121 +24,82 @@ contract Identity is Storage, IIdentity {
         _;
     }
 
+    // ===== CONSTRUCTOR =====
     /**
-     * @notice When using this contract as an implementation for a proxy, call this initializer with a delegatecall.
-     *
-     * @param initialManagementKey The ethereum address to be set as the management key of the ONCHAINID.
+     * @notice Constructor function for contract.
+     * @param initialManagementKey The address to be set as the management key of the identity system.
      */
-    function initialize(address initialManagementKey) public {
-        __Identity_init(initialManagementKey);
-    }
-
-    /**
-     * @notice Computes if the context in which the function is called is a constructor or not.
-     *
-     * @return true if the context is a constructor.
-     */
-    function _isConstructor() private view returns (bool) {
-        address self = address(this);
-        uint256 cs;
-        // solhint-disable-next-line no-inline-assembly
-        assembly { cs := extcodesize(self) }
-        return cs == 0;
-    }
-
-    /**
-     * @notice Initializer internal function for the Identity contract.
-     *
-     * @param initialManagementKey The ethereum address to be set as the management key of the ONCHAINID.
-     */
-    // solhint-disable-next-line func-name-mixedcase
-    function __Identity_init(address initialManagementKey) internal {
-        require(!initialized || _isConstructor(), "Initial key was already setup.");
-        initialized = true;
-        canInteract = true;
-
+    constructor (
+        address initialManagementKey
+    ) {
         bytes32 _key = keccak256(abi.encode(initialManagementKey));
+
         keys[_key].key = _key;
         keys[_key].purposes = [1];
         keys[_key].keyType = 1;
+
         keysByPurpose[1].push(_key);
+
         emit KeyAdded(_key, 1, 1);
     }
 
+    // ===== VIEW FUNCTIONS ======
     /**
-     * @notice Implementation of the getKey function from the ERC-734 standard
-     *
-     * @param _key The public key.  for non-hex and long keys, its the Keccak256 hash of the key
-     *
-     * @return purposes Returns the full key data, if present in the identity.
-     * @return keyType Returns the full key data, if present in the identity.
-     * @return key Returns the full key data, if present in the identity.
+     * @dev See { IERC734-getKey }.
      */
-    function getKey(bytes32 _key)
-    public
-    override
-    view
-    returns(uint256[] memory purposes, uint256 keyType, bytes32 key)
-    {
-        return (keys[_key].purposes, keys[_key].keyType, keys[_key].key);
+    function getKey (
+        bytes32 _key
+    ) public override view returns (
+        uint256[] memory purposes,
+        uint256 keyType,
+        bytes32 key
+    ) {
+        return (
+            keys[_key].purposes,
+            keys[_key].keyType,
+            keys[_key].key
+        );
     }
 
     /**
-    * @notice gets the purposes of a key
-    *
-    * @param _key The public key.  for non-hex and long keys, its the Keccak256 hash of the key
-    *
-    * @return _purposes Returns the purposes of the specified key
-    */
-    function getKeyPurposes(bytes32 _key)
-    public
-    override
-    view
-    returns(uint256[] memory _purposes)
-    {
-        return (keys[_key].purposes);
+     * @dev See { IERC734-getKeyPurposes }.
+     */
+    function getKeyPurposes (
+        bytes32 _key
+    ) public override view returns (
+        uint256[] memory _purposes
+    ) {
+        return (
+            keys[_key].purposes
+        );
     }
 
     /**
-        * @notice gets all the keys with a specific purpose from an identity
-        *
-        * @param _purpose a uint256[] Array of the key types, like 1 = MANAGEMENT, 2 = ACTION, 3 = CLAIM, 4 = ENCRYPTION
-        *
-        * @return _keys Returns an array of public key bytes32 hold by this identity and having the specified purpose
-        */
-    function getKeysByPurpose(uint256 _purpose)
-    public
-    override
-    view
-    returns(bytes32[] memory _keys)
-    {
+     * @dev See { IERC734-getKeysByPurpose }.
+     */
+    function getKeysByPurpose (
+        uint256 _purpose
+    ) public override view returns (
+        bytes32[] memory keys
+    ) {
         return keysByPurpose[_purpose];
     }
 
     /**
-    * @notice implementation of the addKey function of the ERC-734 standard
-    * Adds a _key to the identity. The _purpose specifies the purpose of key. Initially we propose four purposes:
-    * 1: MANAGEMENT keys, which can manage the identity
-    * 2: ACTION keys, which perform actions in this identities name (signing, logins, transactions, etc.)
-    * 3: CLAIM signer keys, used to sign claims on other identities which need to be revokable.
-    * 4: ENCRYPTION keys, used to encrypt data e.g. hold in claims.
-    * MUST only be done by keys of purpose 1, or the identity itself.
-    * If its the identity itself, the approval process will determine its approval.
-    *
-    * @param _key keccak256 representation of an ethereum address
-    * @param _type type of key used, which would be a uint256 for different key types. e.g. 1 = ECDSA, 2 = RSA, etc.
-    * @param _purpose a uint256[] Array of the key types, like 1 = MANAGEMENT, 2 = ACTION, 3 = CLAIM, 4 = ENCRYPTION
-    *
-    * @return success Returns TRUE if the addition was successful and FALSE if not
+    * @dev See { IERC734-addKey }.
     */
-    function addKey(bytes32 _key, uint256 _purpose, uint256 _type)
-    public
-    delegatedOnly
-    override
-    returns (bool success)
-    {
+    function addKey (
+        bytes32 _key,
+        uint256 _purpose,
+        uint256 _type
+    ) public override returns (
+        bool success
+    ) {
         if (msg.sender != address(this)) {
-            require(keyHasPurpose(keccak256(abi.encode(msg.sender)), 1), "Permissions: Sender does not have management key");
+            require (
+                keyHasPurpose(keccak256(abi.encode(msg.sender)), 1), 
+                "Permissions: Sender does not have management key"
+            );
         }
 
         if (keys[_key].key == _key) {
@@ -170,6 +125,7 @@ contract Identity is Storage, IIdentity {
         return true;
     }
 
+    // ====== CORE LOGIC ======
     /**
      * @notice Approves an execution or claim addition.
      * This SHOULD require n of m approvals of keys purpose 1, if the _to of the execution is the identity contract itself, to successfully approve an execution.
@@ -295,28 +251,6 @@ contract Identity is Storage, IIdentity {
         emit KeyRemoved(_key, _purpose, keyType);
 
         return true;
-    }
-
-
-    /**
-    * @notice Returns true if the key has MANAGEMENT purpose or the specified purpose.
-    */
-    function keyHasPurpose(bytes32 _key, uint256 _purpose)
-    public
-    override
-    view
-    returns(bool result)
-    {
-        Key memory key = keys[_key];
-        if (key.key == 0) return false;
-
-        for (uint keyPurposeIndex = 0; keyPurposeIndex < key.purposes.length; keyPurposeIndex++) {
-            uint256 purpose = key.purposes[keyPurposeIndex];
-
-            if (purpose == 1 || purpose == _purpose) return true;
-        }
-
-        return false;
     }
 
     /**
@@ -485,5 +419,33 @@ contract Identity is Storage, IIdentity {
     returns(bytes32[] memory claimIds)
     {
         return claimsByTopic[_topic];
+    }
+
+    /**
+    * @notice Returns true if the key has MANAGEMENT purpose or the specified purpose.
+    */
+    function keyHasPurpose (
+        bytes32 _key,
+        uint256 _purpose
+    ) public override view returns (
+        bool result
+    ) {
+        Key memory key = keys[_key];
+        if (key.key == 0) {
+            return false;
+        }
+
+        for (uint keyPurposeIndex = 0;
+            keyPurposeIndex < key.purposes.length;
+            keyPurposeIndex++
+        ) {
+            uint256 purpose = key.purposes[keyPurposeIndex];
+
+            if (purpose == 1 || purpose == _purpose) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

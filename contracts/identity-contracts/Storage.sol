@@ -1,18 +1,23 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+/**
+ * @title Storage
+ *
+ * @notice Data types and storage structure definition for Identity Manager.
+ */
 contract Storage {
-    uint256 internal executionNonce;
+    // ===== STATE =====
+    uint256 internal executionNonce; 
 
+    // ===== DATA TYPES =====
     /**
-    * @dev Definition of the structure of a Key.
+    * @notice A `Key` is a public key owned by this identity 
+    * @dev Keys are cryptographic public keys, or contract addresses associated with this identity.
     *
-    * Specification: Keys are cryptographic public keys, or contract addresses associated with this identity.
-    * The structure should be as follows:
-    *   - key: A public key owned by this identity
-    *      - purposes: uint256[] Array of the key purposes, like 1 = MANAGEMENT, 2 = EXECUTION
-    *      - keyType: The type of key used, which would be a uint256 for different key types. e.g. 1 = ECDSA, 2 = RSA, etc.
-    *      - key: bytes32 The public key. // Its the Keccak256 hash of the key
+    * @param purposes Array of the key purposes, like 1 = MANAGEMENT, 2 = EXECUTION.
+    * @param keyType The type of key used, which would be a uint256 for different key types. e.g. 1 = ECDSA, 2 = RSA, etc.
+    * @param key The actual public key expressed as the Keccak256 hash of the key.
     */
     struct Key {
         uint256[] purposes;
@@ -20,6 +25,9 @@ contract Storage {
         bytes32 key;
     }
 
+    /**
+     * @notice 
+     */
     struct Execution {
         address to;
         uint256 value;
@@ -29,17 +37,15 @@ contract Storage {
     }
 
    /**
-    * @dev Definition of the structure of a Claim.
-    *
-    * Specification: Claims are information an issuer has about the identity holder.
-    * The structure should be as follows:
-    *   - claim: A claim published for the Identity.
-    *      - topic: A uint256 number which represents the topic of the claim. (e.g. 1 biometric, 2 residence (ToBeDefined: number schemes, sub topics based on number ranges??))
-    *      - scheme : The scheme with which this claim SHOULD be verified or how it should be processed. Its a uint256 for different schemes. E.g. could 3 mean contract verification, where the data will be call data, and the issuer a contract address to call (ToBeDefined). Those can also mean different key types e.g. 1 = ECDSA, 2 = RSA, etc. (ToBeDefined)
-    *      - issuer: The issuers identity contract address, or the address used to sign the above signature. If an identity contract, it should hold the key with which the above message was signed, if the key is not present anymore, the claim SHOULD be treated as invalid. The issuer can also be a contract address itself, at which the claim can be verified using the call data.
-    *      - signature: Signature which is the proof that the claim issuer issued a claim of topic for this identity. it MUST be a signed message of the following structure: `keccak256(abi.encode(identityHolder_address, topic, data))`
-    *      - data: The hash of the claim data, sitting in another location, a bit-mask, call data, or actual data based on the claim scheme.
-    *      - uri: The location of the claim, this can be HTTP links, swarm hashes, IPFS hashes, and such.
+    * @notice Claims are information an issuer has about the identity holder.
+    * @dev Each `Claim` struct should represent a published claim for the Identity.
+    * 
+    * @param topic A number which represents the topic of the claim, e.g. 1 biometric, 2 residence, ...
+    * @param scheme The scheme with which this claim should be verified or how it should be processed, e.g. 1 = ECDSA, 2 = RSA, etc.
+    * @param issuer The issuers identity contract address, or the address used to sign the `signature`.
+    * @param signature Signature which is the proof that the claim issuer issued a claim of topic for this identity. It must be a signed message of the following structure: `keccak256(abi.encode(identityHolder_address, topic, data))`
+    * @param data The hash of the claim data, sitting in another location.
+    * @param uri The URL for the claim data.
     */
     struct Claim {
         uint256 topic;
@@ -50,6 +56,7 @@ contract Storage {
         string uri;
     }
 
+    // ===== MAPPINGS =====
     mapping(bytes32 => Key) internal keys;
     mapping(uint256 => bytes32[]) internal keysByPurpose;
     mapping(uint256 => Execution) internal executions;
