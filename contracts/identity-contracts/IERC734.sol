@@ -55,6 +55,10 @@ interface IERC734 {
     /**
      * @notice Emitted when a key was added to the Identity.
      * @dev MUST be triggered when addKey was successfully called.
+     *
+     * @param key The encoded public key.
+     * @param purpose The purpose of the key.
+     * @param keyType The type of the key.
      */
     event KeyAdded (
         bytes32 indexed key,
@@ -83,10 +87,23 @@ interface IERC734 {
 
     // ====== CORE LOGIC ======
     /**
-     * @notice Adds a key to the identity. MUST only be done by keys of purpose 1, 
+     * @notice Adds a key to the identity.
+     * 
+     * The 'Purposes' are the following ones:
+     * 1- MANAGEMENT keys, which can manage the identity.
+     * 2- ACTION keys, which perform actions in this identities name (signing, logins, transactions, etc.)
+     * 3- CLAIM signer keys, used to sign claims on other identities which need to be revokable.
+     * 4- ENCRYPTION keys, used to encrypt data e.g. hold in claims.
+     * @dev Triggers event `KeyAdded`.
+     * This call MUST only be done by keys of purpose 1, 
      * or the identity itself. If it's the identity itself, 
      * the approval process will determine its approval.
-     * @dev Triggers event `KeyAdded`.
+     *
+     * @param _key Keccak256 representation of an ethereum address.
+     * @param _purpose The key type as specified above.
+     * @param _keyType Tpe of key used. e.g. 1 = ECDSA, 2 = RSA, etc.
+     *
+     * @return success Returns `True` if the addition was successful and `False` if not.
      */
     function addKey (
         bytes32 _key,
@@ -97,9 +114,9 @@ interface IERC734 {
     );
 
     /**
-     * @notice Removes _purpose for _key from the identity.
+     * @notice Removes the purpose of a specific _key from the identity.
      * @dev Triggers event `KeyRemoved`.
-     * MUST only be done by keys of purpose 1, or the identity itself.
+     * Must only be done by keys of purpose 1, or the identity itself.
      * If it's the identity itself, the approval process will determine its approval.
      */
     function removeKey (
@@ -141,6 +158,13 @@ interface IERC734 {
     // ===== VIEW FUNCTIONS ======
     /**
      * @notice Returns the full key data, if present in the identity.
+     * @dev The key for non-hex and long keys, its the Keccak256 hash of the key.
+     *
+     * @param _key The desired public key value.
+     *
+     * @return purposes Returns the full key data, if present in the identity.
+     * @return keyType Returns the full key data, if present in the identity.
+     * @return key Returns the full key data, if present in the identity.
      */
     function getKey (
         bytes32 _key
@@ -152,6 +176,10 @@ interface IERC734 {
 
     /**
      * @notice Returns the list of purposes associated with a key.
+     *
+     * @param _key The desired public key value.
+     *
+     * @return _purposes Returns the purposes of the specified key
      */
     function getKeyPurposes (
         bytes32 _key
@@ -161,6 +189,10 @@ interface IERC734 {
 
     /**
      * @notice Returns an array of public key bytes32 held by this identity.
+     *
+     * @param _purpose Purpose filter to get keys by.
+     *
+     * @return keys Array of public key hold by this identity.
      */
     function getKeysByPurpose (
         uint256 _purpose
@@ -168,7 +200,6 @@ interface IERC734 {
         bytes32[] memory keys
     );
 
-    // ===== UTILITIES =====
     /**
      * @notice Returns TRUE if a key is present and has the given purpose.
      * If the key is not present it returns FALSE.
