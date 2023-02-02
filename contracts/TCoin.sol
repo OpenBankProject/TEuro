@@ -5,6 +5,12 @@ pragma solidity ^0.8.17;
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
+/**
+ * @title TCoin
+ * @author OBP - Open Bank Project
+ *
+ * @notice Implementation of Transparent Token from OBP.
+ */
 contract TCoin is ERC20, Ownable {
 
     mapping (address => bool) verifications;
