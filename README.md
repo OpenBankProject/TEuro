@@ -1,4 +1,6 @@
-# OBP-TCoin
+# TESOBE-TCoin
+
+Copyright (C) 2022 - 2023 TESOBE GmbH
 
 This module contains three packages that enable the full functionalities for the token.
 The packages are divided as follows:
