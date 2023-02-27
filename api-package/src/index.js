@@ -1,65 +1,112 @@
 const express = require("express");
-const { User } = require("./models.js");
+const { User, sequelize } = require("./models.js");
 
 const app = express();
+const userRouter = express.Router();
+const identityRouter = express.Router()
 
 app.use( express.json() );
+app.use("/user", userRouter);
+app.use("/identity", identityRouter);
 
 app.get("/", (_, res) => {
-  res.status(200).send("Healthy!");
+  res.status(200).send("TCoin Validation API");
 });
 
+userRouter.post("/", async (req, res) => {
+    const { legalName, 
+        dateOfBirth } = req.body;
 
-app.get("/status/:id", async (req, res) => {
-    const { id: userId } = req.params;
-    
-    const user = await User.findAll({
-        where: { 
-            id: userId
-        }
-    });
-
-    res.status(200).send({
-        status: user.valid
-    });
-});
-
-app.post("/create", async (req, res) => {
-    const { username } = req.body;
-
-    if (!username) {
+    if (!legalName || !dateOfBirth) {
         res.status(400).send({
-            message: "Missing user id"
+            message: "Missing parameters"
         });
     }
     
-    const user = await User.create({
-        username,
-        valid: false
-    });
+    try {
+        const user = await User.create({
+            legalName: legalName,
+            dateOfBirth: dateOfBirth
+        });
 
-    res.status(200).send({
-        id: user.id
-    });
+        res.status(201).send({
+            userId: user.id
+        });
+
+    } catch (err) {
+        console.log(`\n/user: ${err}\n`);
+        res.status(500).send();
+    }
 });
 
-app.post("/approve/:id", async (req, res) => {
-    const { id: userId } = req.params;
+userRouter.get("/status", async (req, res) => {
+    const { id } = req.query;
     
-    await User.update({
-        valid: true
-    }, {
-        where: { id: userId }
-    });
+    try {
+        const user = await User.findAll({
+            where: { 
+                id: id
+            }
+        });
 
-    res.status(200);
+        if (user.length > 0) {
+            res.status(200).send({
+                status: user[0].dataValues.valid
+            });
+        } else {
+            res.status(400).send({
+                message: "User not found"
+            });
+        }
+    } catch (err) {
+        console.error(`\n/user/status: ${err}\n`)
+        res.status(500).send();
+    }
+});
+
+identityRouter.post("/", async (req, res) => {
+    const { id } = req.query;
+    const { documentName, 
+        countryName, issueDate,
+        placeName, expirityDate } = req.body;
+
+    if (!(id && documentName && countryName 
+        && issueDate && placeName && expirityDate)) {
+            res.status(400).send({
+                message: "Missing parameters"
+        });
+    }
+
+    try {
+        const count = await User.update({
+            identityDocument: documentName,
+            identityDocumentCountry: countryName,
+            issueDate: issueDate,
+            issuePlace: placeName,
+            expirityDate: expirityDate,
+            valid: true
+        }, {
+            where: { id: id }
+        });
+
+        if (count > 0) {
+            res.status(200).send();
+        } else {
+            res.status(400).send({
+                message: "User not found"
+            });
+        }
+    } catch (err) {
+        console.error(`\n/identity: ${err}\n`);
+        res.status(500).send();
+    }
 });
 
 app.listen(
-    80, 
+    8000, 
     async () => 
     {   
-        console.log("Starting server...");
-        await sequelize.sync();
-        console.log("Mock API listening on port 80!")
+        console.log("\nStarting server...\n");
+        await sequelize.sync({ force: true });
+        console.log("\nApp listening on port 8000!\n")
 });
