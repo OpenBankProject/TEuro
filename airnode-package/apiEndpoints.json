@@ -1,0 +1,18 @@
+{
+  "0": {
+    "name": "userStatus",
+    "address": "0x38fe8e80ef717f403a567df8c9c98bbf671fc565ec120b472563961cff3b09e3"
+  },
+  "1": {
+    "name": "userRoot",
+    "address": "0x42f1960f4b169c2d3da12d587aa3393a34c0144cb24fe771cc27b3a7dc1e49ce"
+  },
+  "2": {
+    "name": "identityRoot",
+    "address": "0xfc7ead6d504e084e6bf9f8e51c5dd2b29db63ff5203dc56709bde75cf3d77d67"
+  },
+  "3": {
+    "name": "root",
+    "address": "0x4888f5bf56835be013a76c23601556d78d0986b5b6af9b835c03922d6c0d2ac8"
+  }
+}
