@@ -1,0 +1,164 @@
+{
+    "chains": [
+        {
+            "authorizers": {
+                "requesterEndpointAuthorizers": [],
+                "crossChainRequesterAuthorizers": []
+            },
+            "authorizations": {
+                "requesterEndpointAuthorizations": {}
+            },
+            "contracts": {
+                "AirnodeRrp": "0xa0AD79D995DdeeB18a14eAef56A549A04e3Aa1Bd"
+            },
+            "id": "80001",
+            "providers": {
+                "mumbai": {
+                    "url": "${CHAIN_PROVIDER_URL}"
+                }
+            },
+            "type": "evm",
+            "options": {
+                "fulfillmentGasLimit": 500000,
+                "gasPriceOracle": [
+                    {
+                        "gasPriceStrategy": "providerRecommendedGasPrice",
+                        "recommendedGasPriceMultiplier": 1.2
+                    },
+                    {
+                        "gasPriceStrategy": "constantGasPrice",
+                        "gasPrice": {
+                            "value": 5,
+                            "unit": "gwei"
+                        }
+                    }
+                ]
+            },
+            "maxConcurrency": 1
+        }
+    ],
+    "nodeSettings": {
+        "nodeVersion": "0.10.0",
+        "cloudProvider": {
+            "type": "aws",
+            "region": "us-east-1",
+            "disableConcurrencyReservations": true
+        },
+        "airnodeWalletMnemonic": "${AIRNODE_WALLET_MNEMONIC}",
+        "heartbeat": {
+            "enabled": false
+        },
+        "httpGateway": {
+            "enabled": true,
+            "maxConcurrency": 1,
+            "corsOrigins": []
+        },
+        "httpSignedDataGateway": {
+            "enabled": false
+        },
+        "logFormat": "plain",
+        "logLevel": "DEBUG",
+        "stage": "test"
+    },
+    "triggers": {
+        "rrp": [
+            {
+                "endpointId": "0x38fe8e80ef717f403a567df8c9c98bbf671fc565ec120b472563961cff3b09e3",
+                "oisTitle": "tCoinValidation",
+                "endpointName": "userStatus",
+                "cacheResponses": false
+            }
+        ],
+        "http": [
+            {
+                "endpointId": "0x4888f5bf56835be013a76c23601556d78d0986b5b6af9b835c03922d6c0d2ac8",
+                "oisTitle": "tCoinValidation",
+                "endpointName": "root"
+            }
+        ],
+        "httpSignedData": []
+    },
+    "templates": [],
+    "ois": [
+        {
+            "oisFormat": "1.4.0",
+            "title": "tCoinValidation",
+            "version": "0.1.0",
+            "apiSpecifications": {
+                "servers": [
+                    {
+                        "url": "http://52.90.149.99:80"
+                    }
+                ],
+                "paths": {
+                    "/" : {
+                        "get": {
+                            "parameters": []
+                        }
+        
+                    },
+                    "/user/status" : {
+                        "get": {   
+                            "parameters": [
+                                {
+                                    "in": "query",
+                                    "name": "id"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "components": {
+                    "securitySchemes": {}
+                },
+                "security": {}
+            },
+            "endpoints": [
+                {
+                    "name":"root",
+                    "operation": {
+                        "method": "get",
+                        "path": "/"
+                    },
+                    "fixedOperationParameters": [],
+                    "reservedParameters": [
+                        {
+                            "name": "_type",
+                            "fixed": "string"
+                        }
+                    ],
+                    "parameters": [],
+                    "summary": "Returns default message"
+                },
+                {
+                    "name": "userStatus",
+                    "operation": {
+                        "method": "get",
+                        "path": "/user/status"
+                    },
+                    "fixedOperationParameters": [],
+                    "reservedParameters": [
+                        {
+                            "name": "_type",
+                            "fixed": "bool"
+                        }
+                    ],
+                    "parameters": [
+                        {
+                            "name": "id",
+                            "operationParameter": {
+                                "in": "query",
+                                "name": "id"
+                            },
+                            "required": true,
+                            "description": "The target user's ID",
+                            "example": "dd4edde3-a22b-4486-961c-d5197787a73f"
+                        }
+                    ],
+                    "summary": "Returns the validation status of a user"
+                }
+            ]
+        }
+    ],
+    "apiCredentials": []
+}
