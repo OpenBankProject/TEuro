@@ -1,0 +1,13 @@
+{
+  "name": "airnode-package",
+  "version": "0.0.1",
+  "author": "TESOBE GmbH",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@api3/airnode-admin": "^0.10.0",
+    "@api3/airnode-protocol": "^0.10.0",
+    "@api3/airnode-validator": "^0.10.0",
+    "app-root-path": "^3.1.0"
+  }
+}

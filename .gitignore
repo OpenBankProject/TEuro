@@ -112,3 +112,6 @@ dist
 artifacts/
 cache/
 typechain/
+
+# Sqlite3 files
+*.db
