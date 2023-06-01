@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.17;
 
+import { DataTypes } from "../libraries/DataTypes.sol";
+
 /**
  * @notice ERC734 (Key Holder) Interface.
  * Standard defined at https://github.com/ethereum/EIPs/issues/734.
+ * @dev A Key is a complex representation of the properties/capabilities
+ * from an address in the identity system.
  */
 interface IERC734 {
     // ===== EVENTS =====
@@ -20,21 +24,11 @@ interface IERC734 {
     );
 
     /**
-     * @notice Emitted when an execute operation was approved and successfully performed.
-     * @dev MUST be triggered when approve was called and the execution was successfully approved.
+     * @notice Emitted when an execute operation was successfully performed.
+     * @dev MUST be triggered when approve was called and the execution
+     * was successfully approved.
      */
     event Executed (
-        uint256 indexed executionId,
-        address indexed to,
-        uint256 indexed value,
-        bytes data
-    );
-
-    /**
-     * @notice Emitted when an execution request was performed via `execute`.
-     * @dev MUST be triggered when execute was successfully called.
-     */
-    event ExecutionRequested (
         uint256 indexed executionId,
         address indexed to,
         uint256 indexed value,
@@ -46,6 +40,17 @@ interface IERC734 {
      * @dev MUST be triggered when execute is not successfully due to any reason.
      */
     event ExecutionFailed (
+        uint256 indexed executionId,
+        address indexed to,
+        uint256 indexed value,
+        bytes data
+    );
+
+    /**
+     * @notice Emitted when an execution request was performed via `execute`.
+     * @dev MUST be triggered when execute was successfully called.
+     */
+    event ExecutionRequested (
         uint256 indexed executionId,
         address indexed to,
         uint256 indexed value,
@@ -74,15 +79,6 @@ interface IERC734 {
         bytes32 indexed key,
         uint256 indexed purpose,
         uint256 indexed keyType
-    );
-
-    /**
-     * @notice Emitted when the list of required keys to perform an action was updated.
-     * @dev MUST be triggered when changeKeysRequired was successfully called.
-     */
-    event KeysRequiredChanged (
-        uint256 purpose,
-        uint256 number
     );
 
     // ====== CORE LOGIC ======
@@ -118,6 +114,11 @@ interface IERC734 {
      * @dev Triggers event `KeyRemoved`.
      * Must only be done by keys of purpose 1, or the identity itself.
      * If it's the identity itself, the approval process will determine its approval.
+     *
+     * @param _key Keccak256 representation of an ethereum address.
+     * @param _purpose The purpose type to be removed from the key.
+     *
+     * @return success Returns `True` if the removal was successful and `False` if not.
      */
     function removeKey (
         bytes32 _key,
@@ -130,9 +131,9 @@ interface IERC734 {
     * @notice Approves an execution or claim addition.
     * @dev Triggers event `Approved`, `Executed`.
     * This SHOULD require n of m approvals of keys purpose 1, 
-    * if the _to of the execution is the identity contract itself, to successfully approve an execution.
+    * if the `_to` of the execution is the identity contract itself, to successfully approve an execution.
     * And COULD require n of m approvals of keys purpose 2, 
-    * if the _to of the execution is another contract, to successfully approve an execution.
+    * if the `_to` of the execution is another contract, to successfully approve an execution.
     */
     function approve (
         uint256 _id,
@@ -142,10 +143,11 @@ interface IERC734 {
     );
 
     /**
-     * @notice Passes an execution instruction to an ERC725 identity.
-     * @dev Triggers event `ExecutionRequested`
-     * SHOULD require approve to be called with one or more keys of purpose 1 or 2 to approve this execution.
-     * Execute COULD be used as the only accessor for `addKey` and `removeKey`.
+     * @notice Passes an execution instruction to the keymanager.
+     * @dev SHOULD require approve to be called with one or more keys of
+     * purpose 1 or 2 to approve this execution.
+     *
+     * @return executionId SHOULD be sent to the approve function, to approve or reject this execution.
      */
     function execute (
         address _to,
@@ -162,16 +164,12 @@ interface IERC734 {
      *
      * @param _key The desired public key value.
      *
-     * @return purposes Returns the full key data, if present in the identity.
-     * @return keyType Returns the full key data, if present in the identity.
-     * @return key Returns the full key data, if present in the identity.
+     * @return key The key structure for the given public key.
      */
     function getKey (
         bytes32 _key
     ) external view returns (
-        uint256[] memory purposes,
-        uint256 keyType,
-        bytes32 key
+        DataTypes.Key memory key
     );
 
     /**
