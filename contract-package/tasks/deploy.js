@@ -1,19 +1,25 @@
 const { task } = require("hardhat/config");
+const { getProvider, writeJsonFile } = require("../scripts/utils");
 
-task("deploy", "Deploys Lock contract")
-  .setAction(async (_, hre) => {
-    const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-    const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-    const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
-
-    const lockedAmount = hre.ethers.utils.parseEther("1");
-
-    const Lock = await hre.ethers.getContractFactory("Lock");
-    const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
-
-    await lock.deployed();
-
-    console.log(
-      `Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`
+task("deploy", "Deploys TCoin contract")
+  .addParam(
+    "networkname",
+    "The network to deploy to"
+    )
+  .setAction(async (taskArgs, hre) => {
+    const provider = getProvider(taskArgs.networkname);
+    const tCoinFactory = await hre.ethers.getContractFactory(
+      "TCoin",
+      provider
+    );
+    const tCoin = await tCoinFactory.deploy(
+      "Test TCoin",
+      "TEST"
+    );
+    console.log("TCoin deployed to: ", tCoin.address); 
+    writeJsonFile(
+      {"TCoin": tCoin.address},
+      `addresses/${taskArgs.networkname}.json`,
+      "w"
     );
   });

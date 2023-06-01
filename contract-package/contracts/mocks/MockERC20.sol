@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.17;
 
-import { ERC20 } from "../oz/ERC20.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
  * @notice Implementation of the { ERC20 } for testing purposes.
@@ -28,7 +28,8 @@ contract MockERC20 is ERC20 {
     ) {
         _mint(msg.sender, initialBalance);
     }
-     /**
+
+    /**
      * @notice Mints a given amount of tokens to the provided target account.
      *
      * @param account The address to recieve the tokens.

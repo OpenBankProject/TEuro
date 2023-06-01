@@ -13,7 +13,13 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
  */
 contract TCoin is ERC20, Ownable {
 
-    mapping (address => bool) verifications;
+    struct User {
+        string name;
+        uint256 id;
+        bool isVerified;
+    }
+
+    mapping (address => User) verifications;
 
     constructor (
         string memory name_,
@@ -22,7 +28,11 @@ contract TCoin is ERC20, Ownable {
         name_,
         symbol_
     ) {
-        verifications[msg.sender] = true;
+        verifications[msg.sender] = User(
+            "OBP",
+            1,
+            true
+        );
     }
 
     // ===== MOCK FUNCTIONS =====
@@ -30,16 +40,24 @@ contract TCoin is ERC20, Ownable {
      * @notice Mock function to mimick actual verification system.
      * @dev This would be replace by IdentityRegistry.
      *
-     * @param targetUser Address to include as verified.
+     * @param _name Name of the user to include as verified.
+     * @param _id Id of the user to include as verified.
+     * @param _targetUser Address to include as verified.
      */
     function addVerification (
-        address targetUser
+        string calldata _name,
+        uint256 _id,
+        address _targetUser
     ) external onlyOwner {
-        if (verifications[targetUser] == true) {
+        if (verifications[_targetUser].isVerified == true) {
             revert ("User already verified!");
         }
 
-        verifications[targetUser] = true;
+        verifications[_targetUser] = User(
+            _name,
+            _id,
+            true
+        );
     }
 
     /**
@@ -51,11 +69,11 @@ contract TCoin is ERC20, Ownable {
     function removeVerification (
         address targetUser
     ) external onlyOwner {
-        if (verifications[targetUser] == false) {
+        if (verifications[targetUser].isVerified == false) {
             revert ("User was not verified!");
         }
 
-        verifications[targetUser] = false;
+        verifications[targetUser].isVerified = false;
     }
 
     /**
@@ -67,7 +85,7 @@ contract TCoin is ERC20, Ownable {
     function isVerified (
         address targetUser
     ) external view returns (
-        bool
+        User memory user_
     ) {
         return verifications[targetUser];
     }
@@ -106,15 +124,15 @@ contract TCoin is ERC20, Ownable {
         address from,
         address to,
         uint256 amount
-    ) internal view override 
+    ) internal virtual view override 
     {
-        if (verifications[from] == false && 
+        if (verifications[from].isVerified == false && 
             from != address(0)
         ) {
             revert("Sender address is not verified!");
         }
 
-        if (verifications[to] == false) {
+        if (verifications[to].isVerified == false) {
             revert("Reciever address is not verified!");
         }
     }
