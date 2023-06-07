@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 /**
  * @title DataTypes
- * @author OBP - Open Bank Project
+ * @author TESOBE GmbH
  *
  * @notice Data types used in TCoin Platform.
  */

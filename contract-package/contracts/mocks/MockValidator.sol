@@ -5,7 +5,7 @@ import { Validator } from "../modules/requesters/Validator.sol";
 
 /**
  * @title MockValidator
- * @author OBP - Open Bank Project
+ * @author TESOBE GmbH
  *
  * @notice This is a mock contract for Validator with the purpose
  * of testing additional features not accessible from the original

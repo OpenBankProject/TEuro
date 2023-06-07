@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
  * @title Validator
- * @author OBP - Open Bank Project
+ * @author TESOBE GmbH
  *
  * @notice RrpRequesterV0 implementation for validation API that would
  * provide oracle functionalities for identity verification.
