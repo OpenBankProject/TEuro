@@ -7,9 +7,9 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title TCoin
- * @author OBP - Open Bank Project
+ * @author TESOBE GmbH
  *
- * @notice Implementation of Transparent Token from OBP.
+ * @notice Implementation of Transparent Token from TESOBE GmbH.
  */
 contract TCoin is ERC20, Ownable {
 

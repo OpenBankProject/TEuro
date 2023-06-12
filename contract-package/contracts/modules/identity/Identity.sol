@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 
 /**
  * @title Identity
- * @author OBP - Open Bank Project
+ * @author TESOBE GmbH
  *
  * @notice Implementation of the `IERC734`(KeyHolder) and the 
  * `IERC735`(ClaimHolder) interfaces into a common identity contract.

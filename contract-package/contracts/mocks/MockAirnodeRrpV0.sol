@@ -6,7 +6,7 @@ import  "@api3/airnode-protocol/contracts/rrp/interfaces/IAirnodeRrpV0.sol";
 
 /**
  * @title MockAirnodeRrpV0
- * @author OBP - Open Bank Project
+ * @author TESOBE GmbH
  *
  * @notice Mock version from API3 Contract for testing purposes.
  * @dev Security checks have been removed.
