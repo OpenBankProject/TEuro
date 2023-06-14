@@ -1,10 +1,11 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
 import { DataTypes } from "../libraries/DataTypes.sol";
 
 /**
- * @title IERC735
+ * @title IERC735.
+ * @author TESOBE GmbH.
  *
  * @notice Interface of the ERC735 (Claim Holder) standard as defined in the EIP.
  * https://github.com/ethereum/EIPs/issues/735
