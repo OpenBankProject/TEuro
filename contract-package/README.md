@@ -1,6 +1,6 @@
 # TCoin Contracts
 
-This package implements the TCoin from TESOBE GmbH. 
+This package implements the TCoin from OBP. 
 Based out from an ERC20 token standard, it includes identity verification capabilities.
 
 ## Contracts
