@@ -1,18 +1,24 @@
+// Hardhat config file
+
 require("@nomiclabs/hardhat-ethers");
 require("@nomicfoundation/hardhat-chai-matchers");
 require("@nomiclabs/hardhat-etherscan");
-require("@typechain/hardhat");
-const dotenv = require("dotenv");
+require("dotenv").config()
 
 require("./tasks");
 
-dotenv.config();
-
+/**
+ * @type import('hardhat/config').HardhatUserConfig
+ */
 module.exports = {
     defaultNetwork: "hardhat",
     networks: {
         hardhat: {
             accounts: {}
+        },
+        mumbai: {
+            url: process.env.MUMBAI_URL,
+            accounts: [process.env.PRIVATE_KEY] || []
         }
     },
     paths: {
@@ -20,10 +26,6 @@ module.exports = {
         cache: "./cache",
         sources: "./contracts",
         tests: "./tests",
-    },
-    typechain: {
-        outDir: "./typechain",
-        target: "ethers-v5",
     },
     solidity: { 
         compilers: [
@@ -37,5 +39,10 @@ module.exports = {
                 }
             }
         ]
+    },
+    etherscan: {
+        apiKey: {
+            polygonMumbai: process.env.POLYGON_SCAN || ""
+        }
     }
 };

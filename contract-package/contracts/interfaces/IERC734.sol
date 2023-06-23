@@ -4,6 +4,9 @@ pragma solidity ^0.8.17;
 import { DataTypes } from "../libraries/DataTypes.sol";
 
 /**
+ * @title IERC734.
+ * @author TESOBE GmbH. 
+ *
  * @notice ERC734 (Key Holder) Interface.
  * Standard defined at https://github.com/ethereum/EIPs/issues/734.
  * @dev A Key is a complex representation of the properties/capabilities
