@@ -16,6 +16,10 @@ Why: Reduce corruption and create networks of values.
 * The number of T-Euros will be variable and will match Euros reserves. The quantity will start small.
 * The value of a T-Euro will be pegged to the Euro
 
+# Status
+
+The codebase is work in progress. We don't yet have any code for stable issuing or proof of reserve.
+
 # Code
 
 This module contains three packages that enable the full functionalities for the token.
