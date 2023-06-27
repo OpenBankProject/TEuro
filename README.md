@@ -1,20 +1,20 @@
-# TESOBE-TCoin
+# T-Euro
 
 Copyright (C) 2022 - 2023 TESOBE GmbH
 
 
 # Rationale
-Create a blockchain token who’s full and complete ownership graph is forever transparent and traceable to KYC’d legal persons or entities.
+Create a blockchain stable coin who’s full and complete ownership graph is forever transparent and traceable to KYC’d legal persons or entities.
 
-Why: Reduce corruption and create networks of values not just value.
+Why: Reduce corruption and create networks of values.
 
 # Properties
 
-* TCoins can only be transferred between addresses that have confirmed Know your Customer (KYC) information.
+* T-Euros can only be transferred between addresses that have confirmed Know your Customer (KYC) information.
 * The KYC information of addresses are validated by certified institutions such as large banks or national ID schemes.
 * Each transaction records the KYC information (legal name) of both the from and to address at the time of the transaction
-* The number of TCoins is fixed
-* The value of a TCoin is variable
+* The number of T-Euros will be variable and will match Euros reserves. The quantity will start small.
+* The value of a T-Euro will be pegged to the Euro
 
 # Code
 
