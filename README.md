@@ -1,4 +1,4 @@
-# TEuro
+# TEURO
 
 Copyright (C) 2022 - 2023 TESOBE GmbH
 
