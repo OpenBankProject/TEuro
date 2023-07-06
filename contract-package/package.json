@@ -1,5 +1,5 @@
 {
-  "name": "tcoin-contract-package",
+  "name": "teuro-contract-package",
   "version": "0.0.1",
   "author": "TESOBE GmbH",
   "license": "ISC",
@@ -19,7 +19,7 @@
   "dependencies": {
     "@api3/airnode-protocol": "^0.9.2",
     "@openzeppelin/contracts": "^4.7.0",
-    "@openzeppelin/contracts-upgradeable": "4.8.2",
+    "@openzeppelin/contracts-upgradeable": "4.9.2",
     "app-root-path": "^3.1.0",
     "dotenv": "^16.0.1",
     "ethers": "^5.4.7"

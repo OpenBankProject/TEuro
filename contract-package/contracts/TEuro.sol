@@ -6,12 +6,12 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title TCoin
+ * @title TEuro
  * @author TESOBE GmbH
  *
  * @notice Implementation of Transparent Token from TESOBE GmbH.
  */
-contract TCoin is ERC20, Ownable {
+contract TEuro is ERC20, Ownable {
 
     struct User {
         string name;
