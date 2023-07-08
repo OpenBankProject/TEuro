@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.17;
 
+// Package
 import { DataTypes } from "../libraries/DataTypes.sol";
 
 /**
- * @title IdentityStorage
+ * @title IdentityStorage.
+ * @author TESOBE GmbH.
  *
- * @notice Data types and storage structure definition for Identity Manager.
+ * @notice Data types and storage structure definition for
+ * individual Identity contracts.
  */
 contract IdentityStorage {
     // ===== STATE ===== 

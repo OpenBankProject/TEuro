@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.17;
 
+// Package
 import { IIdentity } from "../../interfaces/IIdentity.sol";
+import { IClaimIssuer } from "../../interfaces/IClaimIssuer.sol";
 import { IdentityStorage } from "../../storage/IdentityStorage.sol";
 import { DataTypes } from "../../libraries/DataTypes.sol";
 import { Errors } from "../../libraries/Errors.sol";
-
+import { Events } from "../../libraries/Events.sol";
+// Others
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
@@ -24,23 +27,43 @@ contract Identity is
 {
     // ===== MODIFIERS =====
     /**
-     * @notice Requires management key to call this function, or internal call
+     * @notice Verifies if caller has MANAGEMENT key.
+     * @dev Reverts with `UnauthorizedCaller`.
      */
     modifier onlyManager() {
         if (
-            msg.sender != address(this)
-            || !(keyHasPurpose(keccak256(abi.encode(msg.sender)), 1))
+            msg.sender != address(this) ||
+            !(
+                keyHasPurpose(
+                    keccak256(
+                        abi.encode(
+                            msg.sender
+                        )
+                    ),
+                    1
+                )
+            )
         ) revert Errors.UnauthorizedCaller();
         _;
     }
 
     /**
-     * @notice Requires claim key to call this function, or internal call
+     * @notice Verifies if caller has CLAIM key.
+     * @dev Reverts with `UnauthorizedCaller`.
      */
     modifier onlyClaimKey() {
         if (
-            msg.sender != address(this)
-            || !(keyHasPurpose(keccak256(abi.encode(msg.sender)), 3))
+            msg.sender != address(this) ||
+            !(
+                keyHasPurpose(
+                    keccak256(
+                        abi.encode(
+                            msg.sender
+                        )
+                    ),
+                    3
+                )
+            )
         ) revert Errors.UnauthorizedCaller();
         _;
     }
@@ -57,12 +80,17 @@ contract Identity is
      * @notice Initializer function for contract.
      * @dev Initialized by the UUPS proxy.
      *
-     * @param managementKey Initial address to be set as the management key of the identity system.
+     * @param managementKey First address to be set as with the MANAGER
+     * purpose for this identity.
      */
     function initialize (
         address managementKey
     ) external initializer nonReentrant {
-        bytes32 _key = keccak256(abi.encode(managementKey));
+        bytes32 _key = keccak256(
+            abi.encode(
+                managementKey
+            )
+        );
 
         keys[_key].key = _key;
         keys[_key].purposes = [1];
@@ -70,8 +98,13 @@ contract Identity is
 
         keysByPurpose[1].push(_key);
 
-        emit KeyAdded(_key, 1, 1);
+        emit Events.KeyAdded(
+            _key,
+            1,
+            1
+        );
 
+        __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
     }
 
@@ -139,17 +172,23 @@ contract Identity is
         bool exists
     ) {
         DataTypes.Key memory key = keys[_key];
-        if (key.key == 0) {
+        if (
+            key.key == 0
+        ) {
             return false;
         }
 
-        for (uint keyPurposeIndex = 0;
+        for (
+            uint keyPurposeIndex = 0;
             keyPurposeIndex < key.purposes.length;
             keyPurposeIndex++
         ) {
             uint256 purpose = key.purposes[keyPurposeIndex];
 
-            if (purpose == 1 || purpose == _purpose) {
+            if (
+                purpose == 1 ||
+                purpose == _purpose
+            ) {
                 return true;
             }
         }
@@ -187,28 +226,24 @@ contract Identity is
         bytes32 _key,
         uint256 _purpose,
         uint256 _keyType
-    ) public override onlyManager returns (
+    ) public override nonReentrant onlyManager returns (
         bool success
     ) {
-        // Only the identity contract itself can add a key with purpose 1.
-        if (msg.sender != address(this)) {
-            require (
-                keyHasPurpose(keccak256(abi.encode(msg.sender)), 1), 
-                "Identity: Sender does not have management key"
-            );
-        }
-
         // If the key already exists, add the purpose to the key.
         // Otherwise, create a new key.
-        if (keys[_key].key == _key) {
-            for (uint keyPurposeIndex = 0;
-                keyPurposeIndex < keys[_key].purposes.length;
+        if (
+            keys[_key].key == _key
+        ) {
+            uint256[] memory _purposes = keys[_key].purposes;
+            for (
+                uint keyPurposeIndex = 0;
+                keyPurposeIndex < _purposes.length;
                 keyPurposeIndex++
             ) {
-                uint256 purpose = keys[_key].purposes[keyPurposeIndex];
+                uint256 purpose = _purposes[keyPurposeIndex];
 
                 if (purpose == _purpose) {
-                    revert("Identity: Key already has purpose");
+                    revert Errors.KeyAlreadyHavePurpose();
                 }
             }
 
@@ -221,7 +256,11 @@ contract Identity is
 
         keysByPurpose[_purpose].push(_key);
 
-        emit KeyAdded(_key, _purpose, _keyType);
+        emit Events.KeyAdded(
+            _key,
+            _purpose,
+            _keyType
+        );
 
         return true;
     }
@@ -232,66 +271,66 @@ contract Identity is
     function removeKey (
         bytes32 _key,
         uint256 _purpose
-    ) public override onlyManager returns (
+    ) public override nonReentrant onlyManager returns (
         bool success
     ) {
         // Check if key exists.
-        require(
-            keys[_key].key == _key,
-            "Identity: Key isn't registered"
-        );
+        if(
+            keys[_key].key != _key
+        ) revert Errors.NonexistentKey();
 
-        // Only the identity contract itself can add a key with purpose 1.
-        if (msg.sender != address(this)) {
-            require(
-                keyHasPurpose(keccak256(abi.encode(msg.sender)), 1),
-                "Identity: Sender does not have management key"
-            );
-        }
-
-        require(
-            keys[_key].purposes.length > 0,
-            "Identity: Key doesn't have such purpose"
-        );
-
+        uint256[] memory _purposes = keys[_key].purposes;
         uint purposeIndex = 0;
-        while (keys[_key].purposes[purposeIndex] != _purpose) {
+
+        while (
+            _purposes[purposeIndex] != _purpose
+        ) {
             purposeIndex++;
 
-            if (purposeIndex >= keys[_key].purposes.length) {
+            if (
+                purposeIndex == _purposes.length
+            ) revert Errors.KeyNotHavePurpose();
+        }
+
+        // We replace the key we want to remove with the last key in the array.
+        // Then we delete the last key in the array.
+        _purposes[purposeIndex] = _purposes[_purposes.length - 1];
+        keys[_key].purposes = _purposes;
+        keys[_key].purposes.pop();
+
+        uint keyIndex = 0;
+        uint arrayLength = keysByPurpose[_purpose].length;
+
+        while (
+            keysByPurpose[_purpose][keyIndex] != _key
+        ) {
+            keyIndex++;
+
+            if (
+                keyIndex >= arrayLength
+            ) {
                 break;
             }
         }
 
-        // Check if index went beyond array length for safety check.
-        require(
-            purposeIndex < keys[_key].purposes.length,
-            "Identity: Key doesn't have such purpose"
-        );
-
-        // We replace the key we want to remove with the last key in the array.
-        // Then we delete the last key in the array.
-        keys[_key].purposes[purposeIndex] = keys[_key].purposes[keys[_key].purposes.length - 1];
-        keys[_key].purposes.pop();
-
-        uint keyIndex = 0;
-
-        while (keysByPurpose[_purpose][keyIndex] != _key) {
-            keyIndex++;
-        }
-
         // Same as before but for the keysByPurpose array.
-        keysByPurpose[_purpose][keyIndex] = keysByPurpose[_purpose][keysByPurpose[_purpose].length - 1];
+        keysByPurpose[_purpose][keyIndex] = keysByPurpose[_purpose][arrayLength - 1];
         keysByPurpose[_purpose].pop();
 
         uint keyType = keys[_key].keyType;
 
         // Completely delete the key if it has no purposes left.
-        if (keys[_key].purposes.length == 0) {
+        if (
+            _purposes.length == 0
+        ) {
             delete keys[_key];
         }
 
-        emit KeyRemoved(_key, _purpose, keyType);
+        emit Events.KeyRemoved(
+            _key,
+            _purpose,
+            keyType
+        );
 
         return true;
     }
@@ -302,29 +341,37 @@ contract Identity is
     function approve (
         uint256 _id,
         bool _approve
-    ) public override returns (
+    ) public override nonReentrant returns (
         bool success
     ) {
-        require(
-            keyHasPurpose(keccak256(abi.encode(msg.sender)), 2),
-            "Identity: Sender does not have action key"
+        // Validate execution `id`.
+        if(
+            _id > executionNonce
+        ) revert Errors.NonexistentExecution();
+        if(
+            executions[_id].executed
+        ) revert Errors.RequestAlreadyExecuted();
+
+        // Emit execution approval resolution.
+        emit Events.Approved(
+            _id,
+            _approve
         );
 
-        emit Approved(_id, _approve);
-
+        // In case of approval execute a call for the request.
         if (_approve == true) {
             executions[_id].approved = true;
 
             (success,) = executions[_id].to.call{
-                value:(executions[_id].value)
+                value: (executions[_id].value)
                 }(
-                    abi.encode(executions[_id].data, 0)
+                    executions[_id].data
                 );
 
             if (success) {
                 executions[_id].executed = true;
 
-                emit Executed(
+                emit Events.Executed(
                     _id,
                     executions[_id].to,
                     executions[_id].value,
@@ -333,7 +380,7 @@ contract Identity is
 
                 return true;
             } else {
-                emit ExecutionFailed(
+                emit Events.ExecutionFailed(
                     _id,
                     executions[_id].to,
                     executions[_id].value,
@@ -345,7 +392,7 @@ contract Identity is
         } else {
             executions[_id].approved = false;
         }
-        return true;
+        return false;
     }
 
     /**
@@ -355,24 +402,64 @@ contract Identity is
         address _to,
         uint256 _value,
         bytes memory _data
-    ) public override payable returns (
+    ) public override payable nonReentrant returns (
         uint256 executionId
     ) {
-        require(
-            !executions[executionNonce].executed, "Already executed"
+        uint256 _executionId = executionNonce;
+
+        // Create entry in storage for this execution
+        executions[executionNonce] = DataTypes.Execution(
+            _to,
+            _value,
+            _data,
+            false,
+            false
         );
-        executions[executionNonce].to = _to;
-        executions[executionNonce].value = _value;
-        executions[executionNonce].data = _data;
-
-        emit ExecutionRequested(executionNonce, _to, _value, _data);
-
-        if (keyHasPurpose(keccak256(abi.encode(msg.sender)), 2)) {
-            approve(executionNonce, true);
-        }
 
         executionNonce++;
-        return executionNonce-1;
+
+        emit Events.ExecutionRequested(
+            executionNonce,
+            _to,
+            _value,
+            _data
+        );
+
+        // If the sender is a MANAGEMENT key, then approves.
+        if (
+            keyHasPurpose(
+                keccak256(
+                    abi.encode(
+                        msg.sender
+                    )
+                ),
+                1
+            )
+        ) {
+            approve(
+                _executionId,
+                true
+            );
+        } else if (
+            // Validates wheter the sender is an ACTION key and the destination
+            // is not the contract itself.
+            _to != address(this) &&
+            keyHasPurpose(
+                keccak256(
+                    abi.encode(
+                        msg.sender
+                    )
+                ),
+                2
+            )
+        ){
+            approve(
+                _executionId,
+                true
+            );
+        }
+
+        return _executionId;
     }
 
     /**
@@ -385,28 +472,46 @@ contract Identity is
         bytes memory _signature,
         bytes memory _data,
         string memory _uri
-    ) public override onlyClaimKey returns (
-        bytes32 claimRequestId
+    ) public override nonReentrant onlyClaimKey returns (
+        bytes32 _claimId
     ) {
-        bytes32 claimId = keccak256(abi.encode(_issuer, _topic));
-
-        if (msg.sender != address(this)) {
-            require(
-                keyHasPurpose(keccak256(abi.encode(msg.sender)), 3),
-                "Identity: Sender does not have claim signer key"
-            );
+        // Validate claim topic.
+        if (_issuer != address(this)) {
+            if(!
+                IClaimIssuer(
+                    _issuer
+                ).isClaimValid(
+                    IIdentity(
+                        address(this)
+                    ),
+                    _topic,
+                    _signature,
+                    _data
+                )
+            ) revert Errors.InvalidClaim();
         }
 
-        if (claims[claimId].issuer != _issuer) {
-            claimsByTopic[_topic].push(claimId);
-            claims[claimId].topic = _topic;
-            claims[claimId].scheme = _scheme;
-            claims[claimId].issuer = _issuer;
-            claims[claimId].signature = _signature;
-            claims[claimId].data = _data;
-            claims[claimId].uri = _uri;
+        // Add or update storage for claim.
+        bytes32 claimId = keccak256(
+            abi.encode(
+                _issuer,
+                _topic
+            )
+        );
+        claims[claimId].topic = _topic;
+        claims[claimId].scheme = _scheme;
+        claims[claimId].signature = _signature;
+        claims[claimId].data = _data;
+        claims[claimId].uri = _uri;
 
-            emit ClaimAdded(
+        // Validate if issuer should be updated.
+        if (
+            claims[claimId].issuer != _issuer
+        ) {
+            claimsByTopic[_topic].push(claimId);
+            claims[claimId].issuer = _issuer;
+
+            emit Events.ClaimAdded(
                 claimId,
                 _topic,
                 _scheme,
@@ -416,14 +521,7 @@ contract Identity is
                 _uri
             );
         } else {
-            claims[claimId].topic = _topic;
-            claims[claimId].scheme = _scheme;
-            claims[claimId].issuer = _issuer;
-            claims[claimId].signature = _signature;
-            claims[claimId].data = _data;
-            claims[claimId].uri = _uri;
-
-            emit ClaimChanged(
+            emit Events.ClaimChanged(
                 claimId,
                 _topic,
                 _scheme,
@@ -442,37 +540,37 @@ contract Identity is
     */
     function removeClaim (
         bytes32 _claimId
-    ) public override onlyClaimKey returns (
+    ) public override nonReentrant onlyClaimKey returns (
         bool success
     ) {
-        if (msg.sender != address(this)) {
-            require(
-                keyHasPurpose(keccak256(abi.encode(msg.sender)), 3),
-                "Identity: Sender does not have CLAIM key"
-            );
-        }
-
-        if (claims[_claimId].topic == 0) {
-            revert("Identity: There is no claim with this ID");
+        uint256 _topic = claims[_claimId].topic;
+        if (
+            _topic == 0
+        ) {
+            revert Errors.NonexistentClaim();
         }
 
         uint claimIndex = 0;
+        uint arrayLength = claimsByTopic[_topic].length;
         // Retrieve the index of the claim to be deleted in the claimsByTopic array.
-        while (claimsByTopic[claims[_claimId].topic][claimIndex] != _claimId) {
+        while (
+            claimsByTopic[_topic][claimIndex] != _claimId
+        ) {
             claimIndex++;
+            if (
+                claimIndex >= arrayLength
+            ) {
+                break;
+            }
         }
 
         // We move the last claim in the array to the index of the claim to be deleted.
-        claimsByTopic[claims[_claimId].topic][claimIndex] = claimsByTopic[
-            claims[_claimId].topic
-        ][
-            claimsByTopic[claims[_claimId].topic].length - 1
-        ];
-        claimsByTopic[claims[_claimId].topic].pop();
+        claimsByTopic[_topic][claimIndex] = claimsByTopic[_topic][arrayLength - 1];
+        claimsByTopic[_topic].pop();
 
-        emit ClaimRemoved(
+        emit Events.ClaimRemoved(
             _claimId,
-            claims[_claimId].topic,
+            _topic,
             claims[_claimId].scheme,
             claims[_claimId].issuer,
             claims[_claimId].signature,
