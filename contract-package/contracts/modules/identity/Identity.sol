@@ -77,15 +77,16 @@ contract Identity is
     }
 
     /**
-     * @notice Initializer function for contract.
-     * @dev Initialized by the UUPS proxy.
+     * @notice Initializer logic for Identities.
+     * @dev This one is used for contracts inheriting from Identity
+     * and also for the Identity contract itself.
      *
      * @param managementKey First address to be set as with the MANAGER
      * purpose for this identity.
      */
-    function initialize (
+    function initializeIdentity (
         address managementKey
-    ) external initializer nonReentrant {
+    ) internal onlyInitializing {
         bytes32 _key = keccak256(
             abi.encode(
                 managementKey
@@ -106,6 +107,21 @@ contract Identity is
 
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
+    }
+
+    /** 
+     * @notice Initializer function for the contract.
+     * @dev Initialized by the UUPS proxy.
+     *
+     * @param managementKey_ First address to be set as with the MANAGER
+     * purpose for this identity.
+     */
+    function initialize (
+        address managementKey_
+    ) external virtual initializer nonReentrant {
+        initializeIdentity(
+            managementKey_
+        );
     }
 
     // ====== UPGRADE FUNCTIONS ======
