@@ -143,4 +143,12 @@ library Events {
         bytes data,
         string uri
     );
+
+    // ===== IClaimIssuer =====
+    /**
+     * @notice Emitted when a claim is revoked.
+     */
+    event ClaimRevoked(
+        bytes indexed signature
+    );
 }
