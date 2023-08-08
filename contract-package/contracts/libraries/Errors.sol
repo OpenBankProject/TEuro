@@ -8,6 +8,12 @@ pragma solidity ^0.8.17;
  * @notice Errors used in TCoin Platform.
  */
 library Errors {
+    // ===== General Purpose =====
+    /**
+     * @dev When a given argument is the zero address.
+     */
+    error AddressZero ();
+
     // ===== Identity =====
     /**
      * @dev When the caller does not have management key.
