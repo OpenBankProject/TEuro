@@ -17,6 +17,10 @@ contract ClaimIssuer is
     mapping (bytes => bool) public revokedClaims;
 
     // ===== CONSTRUCTOR =====
+    /**
+     * @dev Disables constructor for logic contract.
+     */
+    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor () {
         _disableInitializers();
     }
@@ -178,7 +182,10 @@ contract ClaimIssuer is
     function revokeClaimBySignature (
         bytes calldata _signature
     ) external {
-        require(!revokedClaims[_signature], "Conflict: Claim already revoked");
+        require(
+            !revokedClaims[_signature],
+            "Conflict: Claim already revoked"
+        );
 
         revokedClaims[_signature] = true;
 

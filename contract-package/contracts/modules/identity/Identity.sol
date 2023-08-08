@@ -32,7 +32,7 @@ contract Identity is
      */
     modifier onlyManager() {
         if (
-            msg.sender != address(this) ||
+            msg.sender != address(this) &&
             !(
                 keyHasPurpose(
                     keccak256(
@@ -53,7 +53,7 @@ contract Identity is
      */
     modifier onlyClaimKey() {
         if (
-            msg.sender != address(this) ||
+            msg.sender != address(this) &&
             !(
                 keyHasPurpose(
                     keccak256(
@@ -72,6 +72,7 @@ contract Identity is
     /**
      * @dev Disables constructor for logic contract.
      */
+    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor () {
        _disableInitializers(); 
     }
@@ -87,24 +88,33 @@ contract Identity is
     function initializeIdentity (
         address managementKey
     ) internal onlyInitializing {
+        // Validations.
+        if (
+            managementKey == address(0)
+        ) revert Errors.AddressZero();
+
+        // Key encoding.
         bytes32 _key = keccak256(
             abi.encode(
                 managementKey
             )
         );
 
+        // Saving into storage.
         keys[_key].key = _key;
         keys[_key].purposes = [1];
         keys[_key].keyType = 1;
 
         keysByPurpose[1].push(_key);
 
+        // Event emission.
         emit Events.KeyAdded(
             _key,
             1,
             1
         );
 
+        // Inheritance chain initialization.
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
     }
