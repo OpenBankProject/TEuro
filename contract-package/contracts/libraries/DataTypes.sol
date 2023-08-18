@@ -43,9 +43,8 @@ library DataTypes {
 
     // ====== IERC735 ======
     /**
-    * @notice Claims are information an issuer has about the identity holder.
-    *   - claim: A claim published for the Identity.
-    * @param topic Number which represents the topic of the claim. (e.g. 1 biometric, 2 residence, ...)
+    * @notice Claims are information an issuer has about the identity user.
+    * @param topic Topic of the claim. (e.g. 1 biometric, 2 residence, ...)
     * @param scheme The scheme with which this claim SHOULD be verified or how it should be processed.
     *               Its a uint256 for different schemes. E.g. could 3 mean contract verification,
     *               where the data will be call data, and the issuer a contract address to call.
@@ -53,7 +52,8 @@ library DataTypes {
     * @param issuer The issuers identity contract address, or the address used to sign the above signature.
     *               If an identity contract, it should hold the key with which the above message was signed,
     *               if the key is not present anymore, the claim SHOULD be treated as invalid.
-    *               The issuer can also be a contract address itself, at which the claim can be verified using the call data.
+    *               The issuer can also be a contract address itself,
+    *               at which the claim can be verified using the call data.
     * @param signature Signature which is the proof that the claim issuer issued a claim of topic for this identity.
     *                   it MUST be a signed message of the following structure:
     *                   `keccak256(abi.encode(identityHolder_address, topic, data))`

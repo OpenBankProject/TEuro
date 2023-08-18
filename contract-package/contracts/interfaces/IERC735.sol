@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.17;
 
+// Package
 import { DataTypes } from "../libraries/DataTypes.sol";
 
 /**
@@ -13,90 +14,6 @@ import { DataTypes } from "../libraries/DataTypes.sol";
  * a user in the identity system.
  */
 interface IERC735 {
-    // ===== EVENTS =====
-    /**
-     * @notice Emitted when a claim was added.
-     * @dev MUST be triggered when a claim was successfully added.
-     */
-    event ClaimAdded (
-        bytes32 indexed claimId,
-        uint256 indexed topic,
-        uint256 scheme,
-        address indexed issuer,
-        bytes signature,
-        bytes data,
-        string uri
-    );
-
-    /**
-     * @notice Emitted when a claim was removed.
-     * @dev MUST be triggered when `removeClaim` was successfully called.
-     */
-    event ClaimRemoved (
-        bytes32 indexed claimId,
-        uint256 indexed topic,
-        uint256 scheme,
-        address indexed issuer,
-        bytes signature,
-        bytes data,
-        string uri
-    );
-
-    /**
-     * @notice Emitted when a claim was changed.
-     */
-    event ClaimChanged (
-        bytes32 indexed claimId,
-        uint256 indexed topic,
-        uint256 scheme,
-        address indexed issuer,
-        bytes signature,
-        bytes data,
-        string uri
-    );
-
-    // ====== CORE LOGIC ======
-    /**
-     * @notice Add or update a claim.
-     * Claims can requested to be added by anybody, including the claim holder itself (self issued).
-     * @dev Triggers event `ClaimAdded`.
-     * Claim IDs are generated using `keccak256(abi.encode(_issuer, _topic))`.
-     * 
-     * @param _topic The type of claim.
-     * @param _scheme The scheme with which this claim should be verified.
-     * @param _issuer The issuers identity contract address.
-     * @param _signature is a signed message of the following structure: `keccak256(abi.encode(address identityHolder_address, uint256 topic, bytes data))`.
-     * @param _data The hash of the claim data.
-     * @param _uri The URL for the claim data.
-     *
-     * @return claimRequestId claim ID that could be sent to the approve function.
-     */
-    function addClaim (
-        uint256 _topic,
-        uint256 _scheme,
-        address _issuer,
-        bytes calldata _signature,
-        bytes calldata _data,
-        string memory _uri
-    ) external returns (
-        bytes32 claimRequestId
-    );
-
-    /**
-     * @notice Removes a claim.
-     * @dev Triggers event `ClaimRemoved`.
-     * Should only be callable by the claim issuer and/or claim holder itself. 
-     *
-     * @param _claimId The id of the target claim.
-     *
-     * @return success Returns whether the claim was successfully removed.
-     */
-    function removeClaim (
-        bytes32 _claimId
-    ) external returns (
-        bool success
-    );
-
     // ===== VIEW FUNCTIONS ======
     /**
      * @notice Get a claim by its id.
@@ -122,5 +39,45 @@ interface IERC735 {
         uint256 _topic
     ) external view returns (
         bytes32[] memory claimIds
+    );
+
+    // ====== CORE LOGIC ======
+    /**
+     * @notice Add or update a claim.
+     * @dev Requires that the sender has CLAIM key.
+     * Claim IDs are generated using `keccak256(abi.encode(_issuer, _topic))`.
+     * 
+     * @param _topic The type of claim.
+     * @param _scheme The scheme with which this claim should be verified.
+     * @param _issuer The issuers identity contract address.
+     * @param _signature is a signed message of the following structure: `keccak256(abi.encode(address identityHolder_address, uint256 topic, bytes data))`.
+     * @param _data The hash of the claim data.
+     * @param _uri The URL for the claim data.
+     *
+     * @return _claimId Generated or existing claim id for this issuer + topic.
+     */
+    function addClaim (
+        uint256 _topic,
+        uint256 _scheme,
+        address _issuer,
+        bytes calldata _signature,
+        bytes calldata _data,
+        string memory _uri
+    ) external returns (
+        bytes32 _claimId
+    );
+
+    /**
+     * @notice Removes a claim.
+     * @dev Can only be removed by the claim issuer, or the claim holder itself. 
+     *
+     * @param _claimId The id of the target claim.
+     *
+     * @return success Returns whether the claim was successfully removed.
+     */
+    function removeClaim (
+        bytes32 _claimId
+    ) external returns (
+        bool success
     );
 }

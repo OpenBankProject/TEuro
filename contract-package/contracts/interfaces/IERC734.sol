@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
+
 pragma solidity ^0.8.17;
 
+// Others
 import { DataTypes } from "../libraries/DataTypes.sol";
 
 /**
@@ -13,153 +15,6 @@ import { DataTypes } from "../libraries/DataTypes.sol";
  * from an address in the identity system.
  */
 interface IERC734 {
-    // ===== EVENTS =====
-    /**
-     * @notice Emitted when an execution request was approved.
-     * @dev MUST be triggered when approve was successfully called.
-     *
-     * @param executionId The id for the execution.
-     * @param approved If the execution was approved or not.
-     */
-    event Approved (
-        uint256 indexed executionId,
-        bool approved
-    );
-
-    /**
-     * @notice Emitted when an execute operation was successfully performed.
-     * @dev MUST be triggered when approve was called and the execution
-     * was successfully approved.
-     */
-    event Executed (
-        uint256 indexed executionId,
-        address indexed to,
-        uint256 indexed value,
-        bytes data
-    );
-
-    /**
-     * @notice Emitted when an execution requested via `execute` fail at runtime.
-     * @dev MUST be triggered when execute is not successfully due to any reason.
-     */
-    event ExecutionFailed (
-        uint256 indexed executionId,
-        address indexed to,
-        uint256 indexed value,
-        bytes data
-    );
-
-    /**
-     * @notice Emitted when an execution request was performed via `execute`.
-     * @dev MUST be triggered when execute was successfully called.
-     */
-    event ExecutionRequested (
-        uint256 indexed executionId,
-        address indexed to,
-        uint256 indexed value,
-        bytes data
-    );
-
-    /**
-     * @notice Emitted when a key was added to the Identity.
-     * @dev MUST be triggered when addKey was successfully called.
-     *
-     * @param key The encoded public key.
-     * @param purpose The purpose of the key.
-     * @param keyType The type of the key.
-     */
-    event KeyAdded (
-        bytes32 indexed key,
-        uint256 indexed purpose,
-        uint256 indexed keyType
-    );
-
-    /**
-     * @notice Emitted when a key was removed from the Identity.
-     * @dev MUST be triggered when removeKey was successfully called.
-     */
-    event KeyRemoved (
-        bytes32 indexed key,
-        uint256 indexed purpose,
-        uint256 indexed keyType
-    );
-
-    // ====== CORE LOGIC ======
-    /**
-     * @notice Adds a key to the identity.
-     * 
-     * The 'Purposes' are the following ones:
-     * 1- MANAGEMENT keys, which can manage the identity.
-     * 2- ACTION keys, which perform actions in this identities name (signing, logins, transactions, etc.)
-     * 3- CLAIM signer keys, used to sign claims on other identities which need to be revokable.
-     * 4- ENCRYPTION keys, used to encrypt data e.g. hold in claims.
-     * @dev Triggers event `KeyAdded`.
-     * This call MUST only be done by keys of purpose 1, 
-     * or the identity itself. If it's the identity itself, 
-     * the approval process will determine its approval.
-     *
-     * @param _key Keccak256 representation of an ethereum address.
-     * @param _purpose The key type as specified above.
-     * @param _keyType Tpe of key used. e.g. 1 = ECDSA, 2 = RSA, etc.
-     *
-     * @return success Returns `True` if the addition was successful and `False` if not.
-     */
-    function addKey (
-        bytes32 _key,
-        uint256 _purpose,
-        uint256 _keyType
-    ) external returns (
-        bool success
-    );
-
-    /**
-     * @notice Removes the purpose of a specific _key from the identity.
-     * @dev Triggers event `KeyRemoved`.
-     * Must only be done by keys of purpose 1, or the identity itself.
-     * If it's the identity itself, the approval process will determine its approval.
-     *
-     * @param _key Keccak256 representation of an ethereum address.
-     * @param _purpose The purpose type to be removed from the key.
-     *
-     * @return success Returns `True` if the removal was successful and `False` if not.
-     */
-    function removeKey (
-        bytes32 _key,
-        uint256 _purpose
-    ) external returns (
-        bool success
-    );
-
-    /**
-    * @notice Approves an execution or claim addition.
-    * @dev Triggers event `Approved`, `Executed`.
-    * This SHOULD require n of m approvals of keys purpose 1, 
-    * if the `_to` of the execution is the identity contract itself, to successfully approve an execution.
-    * And COULD require n of m approvals of keys purpose 2, 
-    * if the `_to` of the execution is another contract, to successfully approve an execution.
-    */
-    function approve (
-        uint256 _id,
-        bool _approve
-    ) external returns (
-        bool success
-    );
-
-    /**
-     * @notice Passes an execution instruction to the keymanager.
-     * @dev SHOULD require approve to be called with one or more keys of
-     * purpose 1 or 2 to approve this execution.
-     *
-     * @return executionId SHOULD be sent to the approve function, to approve or reject this execution.
-     */
-    function execute (
-        address _to,
-        uint256 _value,
-        bytes calldata _data
-    ) external payable returns (
-        uint256 executionId
-    );
-
     // ===== VIEW FUNCTIONS ======
     /**
      * @notice Returns the full key data, if present in the identity.
@@ -167,7 +22,7 @@ interface IERC734 {
      *
      * @param _key The desired public key value.
      *
-     * @return key The key structure for the given public key.
+     * @return key The key data for the given public key.
      */
     function getKey (
         bytes32 _key
@@ -202,13 +57,107 @@ interface IERC734 {
     );
 
     /**
-     * @notice Returns TRUE if a key is present and has the given purpose.
-     * If the key is not present it returns FALSE.
+     * @notice Verifiy wether a key has a given purpose or if it has
+     * the MANAGEMENT purpose.
+     *
+     * @param _key The target key id.
+     * @param _purpose The target purpose to validate.
+     *
+     * @return exists Returns true if the key exists and has the given purpose.
      */
     function keyHasPurpose (
         bytes32 _key,
         uint256 _purpose
     ) external view returns (
         bool exists
+    );
+
+    // ====== CORE LOGIC ======
+    /**
+     * @notice Adds a key to the identity.
+     * 
+     * The 'Purposes' are the following ones:
+     * 1- MANAGEMENT keys, which can manage the identity.
+     * 2- ACTION keys, which perform actions in this identities name (signing, logins, transactions, etc.)
+     * 3- CLAIM signer keys, used to sign claims on other identities which need to be revokable.
+     * 4- ENCRYPTION keys, used to encrypt data e.g. hold in claims.
+     * @dev This call MUST only be done by keys of purpose 1, 
+     * or the identity itself. If it's the identity itself, 
+     * the approval process will determine its approval.
+     *
+     * @param _key Keccak256 representation of an ethereum address.
+     * @param _purpose The key type as specified above.
+     * @param _keyType Tpe of key used. e.g. 1 = ECDSA, 2 = RSA, etc.
+     *
+     * @return success Returns `True` if the addition was successful and `False` if not.
+     */
+    function addKey (
+        bytes32 _key,
+        uint256 _purpose,
+        uint256 _keyType
+    ) external returns (
+        bool success
+    );
+
+    /**
+     * @notice Removes the purpose of a specific _key from the identity.
+     * @dev Must only be done by keys of purpose 1, or the identity itself.
+     * If it's the identity itself, the approval process will determine its approval.
+     *
+     * @param _key Keccak256 representation of an ethereum address.
+     * @param _purpose The purpose type to be removed from the key.
+     *
+     * @return success Returns `True` if the removal was successful and `False` if not.
+     */
+    function removeKey (
+        bytes32 _key,
+        uint256 _purpose
+    ) external returns (
+        bool success
+    );
+
+    /**
+     * @notice Approves an execution or claim addition.
+     * @dev If the sender is an ACTION key and the destination address
+     * is not the identity contract itself, then the approval is
+     * authorized and the operation would be performed.
+     * If the destination address is the identity itself,
+     * then the execution would be authorized and performed only
+     * if the sender is a MANAGEMENT key.
+     *
+     * @param _id The exeuction `id`, generated by the `execute` function.
+     * @param _approve Wheter to approve or reject the execution.
+     *
+     * @return success Returns `True` if the call was successful and `False` if not.
+     */
+    function approve (
+        uint256 _id,
+        bool _approve
+    ) external returns (
+        bool success
+    );
+
+    /**
+     * @notice Passes an execution instruction to the keymanager.
+     * @dev If the sender is an ACTION key and the destination address
+     * is not the identity contract itself, then the execution is immediately
+     * approved and performed.
+     * If the destination address is the identity itself,
+     * then the execution would be performed immediately only if
+     * the sender is a MANAGEMENT key.
+     * Otherwise the execution request must be approved via the `approve` method.
+     *
+     * @param _to The destination address to call.
+     * @param _value The amount of ETH to transfer.
+     * @param _data The data to forward.
+     *
+     * @return executionId SHOULD be sent to the approve function, to approve or reject this execution.
+     */
+    function execute (
+        address _to,
+        uint256 _value,
+        bytes calldata _data
+    ) external payable returns (
+        uint256 executionId
     );
 }
