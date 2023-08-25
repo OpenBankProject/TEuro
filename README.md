@@ -8,6 +8,12 @@ Create a blockchain stable coin who’s full and complete ownership graph is for
 
 Why: Reduce corruption and create networks of values.
 
+# Status
+
+The codebase is *Work in Progress*. We don't yet have any code for stable issuing or proof of reserve.
+
+
+
 # Properties
 
 * TEuros can only be transferred between addresses that have confirmed Know your Customer (KYC) information.
@@ -16,9 +22,7 @@ Why: Reduce corruption and create networks of values.
 * The number of TEuros will be variable and will match Euros reserves. The quantity will start small.
 * The value of a TEuro will be pegged to the Euro
 
-# Status
 
-The codebase is work in progress. We don't yet have any code for stable issuing or proof of reserve.
 
 # Code
 
