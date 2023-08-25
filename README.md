@@ -10,7 +10,7 @@ Why: Reduce corruption and create networks of values.
 
 # Status
 
-The codebase is *Work in Progress*. We don't yet have any code for stable issuing or proof of reserve.
+The codebase is **Work in Progress!** We don't yet have any code for stable issuing or proof of reserve.
 
 
 
