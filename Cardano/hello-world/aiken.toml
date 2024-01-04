@@ -1,0 +1,14 @@
+name = "aiken-lang/hello-world"
+version = "0.0.0"
+license = "Apache-2.0"
+description = "Aiken contracts for project 'aiken-lang/hello-world'"
+
+[repository]
+user = "aiken-lang"
+project = "hello-world"
+platform = "github"
+
+[[dependencies]]
+name = "aiken-lang/stdlib"
+version = "1.7.0"
+source = "github"
