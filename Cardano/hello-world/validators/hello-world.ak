@@ -1,7 +1,7 @@
 use aiken/hash.{Blake2b_224, Hash}
 use aiken/list
 use aiken/string
-use aiken/transaction.{ScriptContext}
+use aiken/transaction.{OutputReference, ScriptContext, Spend, TransactionId}
 use aiken/transaction/credential.{VerificationKey}
 
 type Datum {
@@ -26,4 +26,18 @@ validator {
       must_say_hello? && must_be_signed?
     }
   }
+}
+
+test hello_world_example() {
+  let datum =
+    Datum { owner: #"00000000000000000000000000000000000000000000000000000000" }
+  let redeemer = Redeemer { msg: "Aiken Rocks!" }
+  let placeholder_utxo =
+    OutputReference { transaction_id: TransactionId(""), output_index: 0 }
+  let context =
+    ScriptContext {
+      purpose: Spend(placeholder_utxo),
+      transaction: transaction.placeholder(),
+    }
+  hello_world(datum, redeemer, context)
 }
