@@ -31,7 +31,7 @@ validator {
 test hello_world_example() {
   let datum =
     Datum { owner: #"00000000000000000000000000000000000000000000000000000000" }
-  let redeemer = Redeemer { msg: "Aiken Rocks!" }
+  let redeemer = Redeemer { msg: "Hello, World!" }
   let placeholder_utxo =
     OutputReference { transaction_id: TransactionId(""), output_index: 0 }
   let context =
