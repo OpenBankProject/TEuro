@@ -1,6 +1,6 @@
 # TEURO
 
-Copyright (C) 2022 - 2023 TESOBE GmbH
+Copyright (C) 2022 - 2024 TESOBE GmbH
 
 
 # Rationale
@@ -16,10 +16,10 @@ The codebase is **Work in Progress!** We don't yet have any code for stable issu
 
 # Properties
 
-* TEuros can only be transferred between addresses that have confirmed Know your Customer (KYC) information.
+* TEuros can only be transferred between addresses that have confirmed Know Your Customer (KYC) information.
 * The KYC information of addresses are validated by certified institutions such as large banks or national ID schemes.
 * Each transaction records the KYC information (legal name) of both the from and to address at the time of the transaction
-* The number of TEuros will be variable and will match Euros reserves. The quantity will start small.
+* The number of TEuros will be variable and will match Euros reserves i.e. Euros in Bank accounts (or other Euro Stable coins?). The quantity will start small.
 * The value of a TEuro will be pegged to the Euro
 
 
